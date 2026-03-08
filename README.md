@@ -125,7 +125,7 @@ Bash
 uvicorn app.main:app --reload
 
 5. Frontend Setup
-6. 
+
 code
 
 Bash
