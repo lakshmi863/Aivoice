@@ -1,22 +1,23 @@
 import os
+import json
 from deepgram import DeepgramClient
 
 class STTService:
     def __init__(self):
-        # Fetch key
         self.api_key = os.getenv("DEEPGRAM_API_KEY")
-        # Initialize client correctly with keyword argument
+        # Ensure client is initialized
         self.client = DeepgramClient(api_key=self.api_key)
 
     async def transcribe_audio(self, audio_bytes: bytes):
         try:
-            # 1. Lower threshold (Sensitive Check)
-            # 500 was too high; 200 allows short words like 'hi' or 'yes'
-            if len(audio_bytes) < 200:
-                print(f"STT DEBUG: Audio too short ({len(audio_bytes)} bytes)")
+            # 1. Minimum sensitivity: Ignore anything under 100 bytes
+            if len(audio_bytes) < 100:
+                print(f"STT: Buffer too small ({len(audio_bytes)} bytes)")
                 return None, "en"
 
-            # 2. Setup Transcription Options
+            print(f"STT: Sending {len(audio_bytes)} bytes to Deepgram...")
+
+            # 2. Options for Nova-2
             options = {
                 "model": "nova-2",
                 "smart_format": True,
@@ -24,39 +25,48 @@ class STTService:
                 "container": "webm"
             }
 
+            # 3. Call Deepgram using the most stable v1 interface
             payload = {"buffer": audio_bytes}
-
-            # 3. Call Deepgram REST API
-            # Note: We use .listen.rest.v("1") for maximum stability
             response = self.client.listen.rest.v("1").transcribe_file(payload, options)
 
-            # 4. ROBUST EXTRACTION (Fixed for SDK v6)
-            # In v6, the response is a Pydantic Model with nested properties
+            # 4. ROBUST PARSING (Handle both Dict and Pydantic Object)
+            transcript = ""
+            detected_lang = "en"
+
+            # Convert response to dictionary if it isn't already
+            if not isinstance(response, dict):
+                try:
+                    # In newer SDKs, results is an object. Convert to dict or access attributes.
+                    res_dict = response.to_dict() if hasattr(response, 'to_dict') else response
+                except:
+                    res_dict = response
+            else:
+                res_dict = response
+
+            # Navigate the nested Deepgram structure safely
             try:
-                # Try accessing via dot notation (SDK standard)
-                if hasattr(response, 'results'):
-                    result_data = response.results
-                    channels = result_data.channels[0]
+                # Structure: results -> channels[0] -> alternatives[0] -> transcript
+                if hasattr(res_dict, 'results'): # Object access
+                    results = res_dict.results
+                    channels = results.channels[0]
                     transcript = channels.alternatives[0].transcript
-                    # Attempt to get language, default to 'en'
                     detected_lang = getattr(channels, "detected_language", "en")
-                else:
-                    # Fallback for dictionary responses
-                    transcript = response['results']['channels'][0]['alternatives'][0]['transcript']
-                    detected_lang = response['results']['channels'][0].get('detected_language', 'en')
+                else: # Dict access
+                    results = res_dict.get('results', {})
+                    channels = results.get('channels', [{}])[0]
+                    alternatives = channels.get('alternatives', [{}])[0]
+                    transcript = alternatives.get('transcript', "")
+                    detected_lang = channels.get('detected_language', "en")
+            except Exception as parse_err:
+                print(f"STT: Parsing logic failed -> {parse_err}")
 
-                # If we got text, return it
-                if transcript and transcript.strip() != "":
-                    print(f"STT SUCCESS: '{transcript}' [{detected_lang}]")
-                    return transcript, detected_lang
-                else:
-                    print("STT DEBUG: Deepgram connected but no words were heard.")
-                    return None, "en"
-
-            except Exception as extraction_err:
-                print(f"STT DATA ERROR: Failed to parse result -> {extraction_err}")
+            if transcript and transcript.strip():
+                print(f"STT SUCCESS: '{transcript}' [{detected_lang}]")
+                return transcript.strip(), detected_lang
+            else:
+                print("STT: No words detected in audio stream.")
                 return None, "en"
 
         except Exception as e:
-            print(f"STT SYSTEM CRASH: {str(e)}")
+            print(f"STT CRITICAL ERROR: {str(e)}")
             return None, "en"
