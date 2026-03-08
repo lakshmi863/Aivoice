@@ -1,0 +1,6 @@
+.navbar { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid #eee; }
+.logo { height: 28px; }
+.status-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+.online { background: #e6f4ea; color: #1e7e34; }
+.offline { background: #fceaea; color: #c82333; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }

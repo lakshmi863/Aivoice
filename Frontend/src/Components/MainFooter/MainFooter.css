@@ -1,0 +1,132 @@
+.main-site-footer {
+  background-color: #1a202c;
+  color: #e2e8f0;
+  padding: 80px 0 0 0;
+  font-family: 'Inter', sans-serif;
+}
+
+.footer-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
+  gap: 40px;
+  padding: 0 20px 60px 20px;
+}
+
+.brand-col .footer-logo {
+  height: 35px;
+  margin-bottom: 20px;
+  filter: brightness(0) invert(1); /* Turns logo white */
+}
+
+.footer-desc {
+  line-height: 1.6;
+  font-size: 14px;
+  color: #a0aec0;
+  margin-bottom: 25px;
+}
+
+.social-links {
+  display: flex;
+  gap: 15px;
+}
+
+.social-links a {
+  color: #a0aec0;
+  transition: 0.3s;
+}
+
+.social-links a:hover {
+  color: #007bff;
+}
+
+.footer-col h3 {
+  color: white;
+  font-size: 18px;
+  margin-bottom: 25px;
+  font-weight: 600;
+}
+
+.footer-col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-col ul li {
+  margin-bottom: 12px;
+}
+
+.footer-col ul li a {
+  text-decoration: none;
+  color: #a0aec0;
+  font-size: 14px;
+  transition: 0.3s;
+}
+
+.footer-col ul li a:hover {
+  color: white;
+  padding-left: 5px;
+}
+
+.contact-item {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: #a0aec0;
+}
+
+.footer-icon {
+  color: #007bff;
+  flex-shrink: 0;
+}
+
+/* Bottom Bar */
+.footer-bottom {
+  border-top: 1px solid #2d3748;
+  padding: 30px 20px;
+}
+
+.bottom-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #718096;
+}
+
+.bottom-links {
+  display: flex;
+  gap: 25px;
+}
+
+.bottom-links a {
+  color: #718096;
+  text-decoration: none;
+}
+
+.bottom-links a:hover {
+  color: white;
+}
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+  .footer-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .footer-container {
+    grid-template-columns: 1fr;
+  }
+  .bottom-container {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+}
