@@ -17,12 +17,12 @@ Architecture Diagram:
 
 <img width="1024" height="800" alt="AiVoice" src="https://github.com/user-attachments/assets/aeadb763-ad93-4975-840b-e289ee44c4b9" />
 
-
 home page:
 
 <img width="3508" height="2894" alt="aivoice-health onrender com_" src="https://github.com/user-attachments/assets/84593815-6f2a-42b7-b096-89c2c4f32ae4" />
 
 AiChart page:
+
 <img width="1900" height="567" alt="image" src="https://github.com/user-attachments/assets/a0ea3e6b-35ce-4f44-bee7-63753014c0eb" />
 
  Key Features
