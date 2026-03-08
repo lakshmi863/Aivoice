@@ -4,17 +4,20 @@ from deepgram import DeepgramClient
 
 class STTService:
     def __init__(self):
+        # Fetch key from environment
         self.api_key = os.getenv("DEEPGRAM_API_KEY")
-        # Initialize client
-        self.client = DeepgramClient(self.api_key)
+        
+       
+     
+        self.client = DeepgramClient(api_key=self.api_key)
 
     async def transcribe_audio(self, audio_bytes: bytes):
         try:
-            # Ignore tiny audio packets
+            # Ignore tiny noise packets
             if len(audio_bytes) < 500:
                 return None, "en"
 
-            # Use a simple dictionary for options (Fixes the ImportError)
+            # Transcription Options
             options = {
                 "model": "nova-2",
                 "smart_format": True,
@@ -22,13 +25,20 @@ class STTService:
                 "container": "webm"
             }
 
-            # Call Deepgram using the v1 Listen interface
+            # Buffer for audio data
             payload = {"buffer": audio_bytes}
+
+            # Call Deepgram REST API
             response = self.client.listen.rest.v("1").transcribe_file(payload, options)
 
-            # Extract result
-            transcript = response.results.channels[0].alternatives[0].transcript
-            detected_lang = getattr(response.results.channels[0], "detected_language", "en")
+            # Safely extract transcript
+            if hasattr(response, 'results'):
+                transcript = response.results.channels[0].alternatives[0].transcript
+                detected_lang = getattr(response.results.channels[0], "detected_language", "en")
+            else:
+                # Dict fallback
+                transcript = response['results']['channels'][0]['alternatives'][0]['transcript']
+                detected_lang = response['results']['channels'][0].get('detected_language', 'en')
 
             if transcript:
                 print(f"STT SUCCESS: {transcript} [{detected_lang}]")
