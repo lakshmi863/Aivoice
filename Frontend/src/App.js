@@ -5,7 +5,7 @@ import Footer from './Components/Footer/Footer';
 import HomePage from './Components/Home/Home'; // Fixed to match your import
 import MainFooter from './Components/MainFooter/MainFooter'; // Fixed to match your import
 
-const WS_URL = "ws://localhost:8000/ws/chat";
+const WS_URL = "wss://aivoice-6i2k.onrender.com/ws/chat";
 
 function App() {
   // --- UI STATES ---
