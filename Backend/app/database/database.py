@@ -1,32 +1,24 @@
 import os
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from motor.motor_asyncio import AsyncIOMotorClient
+from dotenv import load_dotenv
 
-# 1. Get the Database URL from the .env file
-# Fallback to local SQLite if POSTGRES_URL is not provided
-SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./2care_ai.db")
+load_dotenv()
 
-# 2. Setup the Engine
-# 'check_same_thread' is only needed for SQLite
-if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-    )
-else:
-    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+# Use your MongoDB Cluster URL from Environment Variables
+# Format: mongodb+srv://<user>:<password>@cluster.mongodb.net/dbname
+MONGO_URL = os.getenv("DATABASE_URL", "mongodb://localhost:27017")
 
-# 3. Create the Session Factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+client = AsyncIOMotorClient(MONGO_URL)
+db = client.get_database("2care_ai")
 
-# 4. Create the Base class for Models
-# Note: We use this in models.py to define tables
-Base = declarative_base()
+# Collections
+doctors_collection = db.get_collection("doctors")
+appointments_collection = db.get_collection("appointments")
 
-# 5. Dependency to get DB session in FastAPI routes
-def get_db():
-    db = SessionLocal()
+# Helper to test connection
+async def test_mongo_connection():
     try:
-        yield db
-    finally:
-        db.close()
+        await client.admin.command('ping')
+        print("✅ Successfully connected to MongoDB Cluster!")
+    except Exception as e:
+        print(f"❌ MongoDB Connection Error: {e}")
