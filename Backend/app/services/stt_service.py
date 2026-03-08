@@ -36,7 +36,7 @@ class STTService:
             # Convert response to dictionary if it isn't already
             if not isinstance(response, dict):
                 try:
-                    # In newer SDKs, results is an object. Convert to dict or access attributes.
+                    
                     res_dict = response.to_dict() if hasattr(response, 'to_dict') else response
                 except:
                     res_dict = response
