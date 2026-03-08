@@ -11,23 +11,24 @@ from app.memory.persistence import get_patient_history
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 async def run_conversation(user_input, history=[], patient_id="test_user"):
-    # 1. Get exact current time (Informs the LLM of 'today' or 'now')
+    # 1. Get exact current time to make AI time-aware
     now_dt = datetime.now()
     current_time_str = now_dt.strftime("%Y-%m-%d %H:%M (%A)")
 
-    # 2. Fetch persistent history (UPDATED: Make sure this function is async)
+    # 2. Fetch persistent history (Async MongoDB fetch)
     try:
-        # Since we are moving to MongoDB, your persistence fetch should be awaited
+        # Crucial: Must 'await' history retrieval from MongoDB Cluster
         past_info = await get_patient_history(patient_id)
     except:
-        past_info = "New patient. No previous appointments found."
+        past_info = "New patient. No history found."
 
-    # 3. Prepare the Prompt with Time Awareness
+    # 3. Build Full Context
+    # Telling the AI to be concise (< 20 words) for low voice latency
     full_system_prompt = (
         f"{SYSTEM_PROMPT}\n\n"
         f"CURRENT_TIME: {current_time_str}\n"
         f"PATIENT_HISTORY: {past_info}\n"
-        "REMINDER: Do not suggest appointment slots that have already passed relative to CURRENT_TIME."
+        "RECAP: Always respond in the user's language. Keep answers under 20 words."
     )
 
     messages = [
@@ -37,9 +38,9 @@ async def run_conversation(user_input, history=[], patient_id="test_user"):
     ]
 
     try:
-        # 4. First Call: Reasoning (Decide if a Tool call is needed)
+        # 4. First Call: Use llama3-8b-8192 for lower latency and higher rate limits
         response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama3-8b-8192", 
             messages=messages,
             tools=TOOLS,
             tool_choice="auto"
@@ -48,30 +49,28 @@ async def run_conversation(user_input, history=[], patient_id="test_user"):
         response_message = response.choices[0].message
         tool_calls = response_message.tool_calls
 
-        # 5. Handle standard chat (If no tool is needed)
+        # 5. Natural Chat handling (No tool needed)
         if not tool_calls:
             return response_message.content
 
-        # 6. Execute Async Tool Calls
+        # 6. Async Tool Execution Logic
         messages.append(response_message)
         
         for tool_call in tool_calls:
             function_name = tool_call.function.name
             function_args = json.loads(tool_call.function.arguments)
             
-            # Default fallback for empty dates
+            # Dynamic default time logic
             if "requested_time" not in function_args and function_name == "check_availability":
-                tomorrow = (now_dt + timedelta(days=1)).strftime("%Y-%m-%d 10:00")
-                function_args["requested_time"] = tomorrow
+                function_args["requested_time"] = (now_dt + timedelta(days=1)).strftime("%Y-%m-%d 10:00")
 
             if function_name in AVAILABLE_FUNCTIONS:
-                print(f"DEBUG: Triggering tool {function_name} via MongoDB...")
+                print(f"DEBUG: Triggering Cloud DB Tool: {function_name}")
                 
-                # --- CRITICAL FIX: ADDED 'await' FOR ASYNC MONGODB FUNCTIONS ---
+                # --- ASYNC EXECUTION FOR MONGODB ---
                 function_to_call = AVAILABLE_FUNCTIONS[function_name]
                 tool_result = await function_to_call(**function_args)
                 
-                # Format for the LLM
                 messages.append({
                     "tool_call_id": tool_call.id,
                     "role": "tool",
@@ -79,14 +78,14 @@ async def run_conversation(user_input, history=[], patient_id="test_user"):
                     "content": json.dumps(tool_result),
                 })
 
-        # 7. Second Call: Voice Response (Generate the final natural speech)
+        # 7. Final Response Generation (Speech output)
         final_response = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="llama3-8b-8192",
             messages=messages
         )
         return final_response.choices[0].message.content
 
     except Exception as e:
-        print("--- ASYNC AGENT ERROR ---")
+        print("--- AGENT SYSTEM ERROR ---")
         print(traceback.format_exc())
-        return "I'm having a little trouble connecting to my database right now. Let me try again in a moment."
+        return "I'm experiencing a brief connection issue. Could you please try again?"
