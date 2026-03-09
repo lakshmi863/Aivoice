@@ -42,12 +42,15 @@ async def startup_event():
                 {"name": "Kavita Reddy", "specialty": "Pediatrician"},
                 {"name": "Anjali Gupta", "specialty": "Gynecolog"},
                 {"name": "Vikram Singh", "specialty": "Orthopedic Surgeon"},
-                {"name": "Meenakshi Sundaram", "specialty": "Ophthalmologist"},
+                {"name": "Meenakshi Sundaram", "specialty": "Ophthalmolog"},
                 {"name": "Rahul Verma", "specialty": "General Physician"},
                 {"name": "Deepa Lakshmi", "specialty": "Psychiatrist"},
                 {"name": "Karthik Raja", "specialty": "ENT Specialist"},
                 {"name": "Sonia Malhotra", "specialty": "Dentist"},
                 {"name": "Abdul Rahim", "specialty": "Urologist"}
+
+           
+
             ]
             # Use insert_many for high-speed batch insertion
             await doctors_collection.insert_many(initial_doctors)
