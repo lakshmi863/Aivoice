@@ -11,7 +11,7 @@ Backend_URL: https://aivoice-6i2k.onrender.com
 
 Frontend_URL: https://aivoice-health.onrender.com
 
-LIVE vedio: 
+LIVE vedio: https://drive.google.com/file/d/1insvFZv0_WjPqFKMAWvwC3UdGX0SlP4-/view?usp=sharing
 
 Architecture Diagram:
 
