@@ -22,41 +22,38 @@ app = FastAPI(title="2Care.ai Voice AI Agent")
 # 3. AUTO-SEEDER: Ensure doctors exist in MongoDB Atlas (Crucial for Cloud Persistence)
 @app.on_event("startup")
 async def startup_event():
-    """
-    This runs every time the server starts. 
-    It checks if the MongoDB Cluster is reachable and seeds the doctor list if empty.
-    """
-    # Test connection to Atlas
     await test_mongo_connection()
 
     try:
-        # Check if any doctors exist in the collection
+        # Check if the count is exactly what we expect (12)
         doctor_count = await doctors_collection.count_documents({})
         
-        if doctor_count == 0:
-            logger.info("MongoDB collection is empty. Seeding initial doctors...")
+        if doctor_count < 12:
+            logger.info(f"Database has {doctor_count} doctors. Updating to full list of 12...")
+            
+            # 1. Clear old data to prevent duplicates
+            await doctors_collection.delete_many({})
+            
+            # 2. Complete, Corrected specialist list
             initial_doctors = [
-                {"name": "Arjun Sharma", "specialty": "Cardiolog"},
-                {"name": "Priya Nair", "specialty": "Dermatolog"},
-                {"name": "Suresh Iyer", "specialty": "Neurolog"},
+                {"name": "Arjun Sharma", "specialty": "Cardiologist"},
+                {"name": "Priya Nair", "specialty": "Dermatologist"},
+                {"name": "Suresh Iyer", "specialty": "Neurologist"},
                 {"name": "Kavita Reddy", "specialty": "Pediatrician"},
-                {"name": "Anjali Gupta", "specialty": "Gynecolog"},
+                {"name": "Anjali Gupta", "specialty": "Gynecologist"},
                 {"name": "Vikram Singh", "specialty": "Orthopedic Surgeon"},
-                {"name": "Meenakshi Sundaram", "specialty": "Ophthalmolog"},
+                {"name": "Meenakshi Sundaram", "specialty": "Ophthalmologist"},
                 {"name": "Rahul Verma", "specialty": "General Physician"},
                 {"name": "Deepa Lakshmi", "specialty": "Psychiatrist"},
                 {"name": "Karthik Raja", "specialty": "ENT Specialist"},
                 {"name": "Sonia Malhotra", "specialty": "Dentist"},
                 {"name": "Abdul Rahim", "specialty": "Urologist"}
-
-           
-
             ]
-            # Use insert_many for high-speed batch insertion
+            
             await doctors_collection.insert_many(initial_doctors)
-            logger.info(f"Successfully seeded {len(initial_doctors)} doctors into Atlas.")
+            logger.info("✅ Successfully updated MongoDB Atlas with all 12 specialists.")
         else:
-            logger.info(f"MongoDB Atlas already contains {doctor_count} doctors. Ready.")
+            logger.info(f"MongoDB Atlas already contains {doctor_count} doctors. System Ready.")
             
     except Exception as e:
         logger.error(f"Seeding error: {e}")
