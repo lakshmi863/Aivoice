@@ -36,11 +36,18 @@ async def startup_event():
         if doctor_count == 0:
             logger.info("MongoDB collection is empty. Seeding initial doctors...")
             initial_doctors = [
-                {"name": "Arjun Sharma", "specialty": "Cardiologist"},
-                {"name": "Priya Nair", "specialty": "Dermatologist"},
-                {"name": "Suresh Iyer", "specialty": "Neurologist"},
+                {"name": "Arjun Sharma", "specialty": "Cardiolog"},
+                {"name": "Priya Nair", "specialty": "Dermatolog"},
+                {"name": "Suresh Iyer", "specialty": "Neurolog"},
                 {"name": "Kavita Reddy", "specialty": "Pediatrician"},
-                {"name": "Anjali Gupta", "specialty": "Gynecologist"}
+                {"name": "Anjali Gupta", "specialty": "Gynecolog"},
+                {"name": "Vikram Singh", "specialty": "Orthopedic Surgeon"},
+                {"name": "Meenakshi Sundaram", "specialty": "Ophthalmologist"},
+                {"name": "Rahul Verma", "specialty": "General Physician"},
+                {"name": "Deepa Lakshmi", "specialty": "Psychiatrist"},
+                {"name": "Karthik Raja", "specialty": "ENT Specialist"},
+                {"name": "Sonia Malhotra", "specialty": "Dentist"},
+                {"name": "Abdul Rahim", "specialty": "Urologist"}
             ]
             # Use insert_many for high-speed batch insertion
             await doctors_collection.insert_many(initial_doctors)
